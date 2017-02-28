@@ -12,7 +12,7 @@ public class Main {
 
     static HashMap<String, User> users = new HashMap<>();
 
-    public static void insertGame(Connection conn, String name, String genre, String platform, Double year) throws SQLException {
+    public static void insertGame(Connection conn, String name, String genre, String platform, int year) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(
                 "INSERT INTO games VALUES (NULL, name, genre, platform, year);");
         stmt.execute();
@@ -24,8 +24,19 @@ public class Main {
         stmt.execute();
     }
 
-    public static ArrayList<Game> selectGames(Connection conn){
-
+    public static ArrayList<Game> selectGames(Connection conn) throws SQLException {
+        ArrayList<Game> games = new ArrayList<>();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM games");
+        ResultSet results = stmt.executeQuery();
+        while (results.next()) {
+            int id = results.getInt("id");
+            String name = results.getString("name");
+            String genre = results.getString("genre");
+            String platform = results.getString("platform");
+            int year = results.getInt("releaseYear");
+            games.add(new Game(name, genre, platform, year));
+        }
+        return games;
 
     }
 
@@ -33,7 +44,7 @@ public class Main {
         Server.createWebServer().start();
         Connection conn = DriverManager.getConnection("/jdbc:h2:./main");
         PreparedStatement stmt = conn.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, releaseYear DOUBLE)");
+                "CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, releaseYear INT)");
         stmt.execute();
 
 
@@ -76,7 +87,7 @@ public class Main {
             String gameName = request.queryParams("gameName");
             String gameGenre = request.queryParams("gameGenre");
             String gamePlatform = request.queryParams("gamePlatform");
-            Double gameYear = Double.parseDouble(request.queryParams("gameYear"));
+            int gameYear = Integer.parseInt(request.queryParams("gameYear"));
 
             //Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
             //user.games.add(game);
@@ -101,9 +112,6 @@ public class Main {
                 user = new User(name);
                 users.put(name, user);
             }
-
-            //users.putIfAbsent(name, new User(name));        //replaces lines User through closing if
-
             Session session = request.session();
             session.attribute("userName", name);
 

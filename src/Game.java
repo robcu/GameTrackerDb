@@ -1,5 +1,6 @@
 
 public class Game {
+    int id;
     String name;
     String genre;
     String platform;
