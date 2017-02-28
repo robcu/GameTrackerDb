@@ -11,7 +11,7 @@
 </form>
 
 <form action="/create-game" method="post">
-    <input type="text" placeholder="Game name" name="gameName" width="200"/>
+    <input type="text" placeholder="Game name" name="gameName"/>
     <select name="gameGenre">
         <option selected disabled>Genre</option>
         <option value="adventure">Adventure</option>
@@ -32,10 +32,31 @@
 
 <ol>
     {{#games}}
-    {{id}}  -  {{name}}  -  {{genre}}  -  {{platform}}  -  {{releaseYear}}
+    Game id = {{id}}  -  {{name}}  -  {{genre}}  -  {{platform}}  -  {{releaseYear}}
     <form action="/delete-game" method="get"><input type="hidden" value="{{id}}" name="DeleteIndex"/><button type="submit">Delete</button></form>
     {{/games}}
 </ol>
+
+<form action="/edit-game" method="post">
+    <input type="number" placeholder="Game id" name="gameId"/>
+    <input type="text" placeholder="Game name" name="gameName"/>
+    <select name="gameGenre">
+        <option selected disabled>Genre</option>
+        <option value="adventure">Adventure</option>
+        <option value="rpg">RPG</option>
+        <option value="strategy">Strategy</option>
+        <option value="shooter">Shooter</option>
+    </select>
+    <select name="gamePlatform">
+        <option selected disabled>Platform</option>
+        <option value="pc">PC</option>
+        <option value="ps4">PS4</option>
+        <option value="xbox">Xbox One</option>
+        <option value="wiiu">Wii U</option>
+    </select>
+    <input type="number" placeholder="Release Year" name="gameYear"/>
+    <button type="submit">Submit</button>
+</form>
 
 </body>
 </html>

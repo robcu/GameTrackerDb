@@ -41,6 +41,18 @@ public class Main {
 
     }
 
+    public static void updateGame(Connection conn, int uIndex, String uName, String uGenre, String uPlatform, int uYear) throws SQLException {
+        // UPDATE players SET is_alive = FALSE WHERE name = 'Bob';
+        PreparedStatement stmt = conn.prepareStatement(
+                //"UPDATE games SET name = uName WHERE id = uIndex;"
+                "UPDATE games SET VALUES (?, ?, ?, ?, ?) WHERE id = uIndex");
+        stmt.setInt(1, uIndex);
+        stmt.setString(2, uName);
+        stmt.setString(3, uGenre);
+        stmt.setString(4, uPlatform);
+        stmt.setInt(5, uYear);
+        stmt.execute();
+    }
 
     public static void main(String[] args) throws SQLException {
         Server.createWebServer().start();
@@ -71,7 +83,6 @@ public class Main {
         });
 
         Spark.post("/create-game", (request, response) -> {
-
             String gameName = request.queryParams("gameName");
             String gameGenre = request.queryParams("gameGenre");
             String gamePlatform = request.queryParams("gamePlatform");
@@ -84,8 +95,13 @@ public class Main {
         });
 
         Spark.post("/edit-game", (request, response) -> {
+            int gameId = Integer.parseInt(request.queryParams("gameId"));
+            String gameName = request.queryParams("gameName");
+            String gameGenre = request.queryParams("gameGenre");
+            String gamePlatform = request.queryParams("gamePlatform");
+            int gameYear = Integer.parseInt(request.queryParams("gameYear"));
 
-            //todo: write method updateGame(); then call it here
+            updateGame(conn, gameId, gameName, gameGenre, gamePlatform, gameYear);
 
             response.redirect("/");
             return "";
