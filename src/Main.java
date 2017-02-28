@@ -34,7 +34,7 @@ public class Main {
             String genre = results.getString("genre");
             String platform = results.getString("platform");
             int year = results.getInt("releaseYear");
-            games.add(new Game(name, genre, platform, year));
+            games.add(new Game(id, name, genre, platform, year));
         }
         return games;
 
@@ -55,7 +55,7 @@ public class Main {
                             Session session = request.session();
                             String name = session.attribute("userName");
                             User user = users.get(name);
-
+//todo: insert selectGames();
                             HashMap m = new HashMap();
                             if (user == null) {
                                 return new ModelAndView(m, "login.html");
@@ -67,11 +67,8 @@ public class Main {
         );
 
         Spark.post("/delete-game", (request, response) -> {
-            Session session = request.session();
-
-            //int index =
-            //todo: write code!
-            //deleteGame(conn, index);
+            int index = Integer.parseInt(request.queryParams("DeleteIndex"));
+            deleteGame(conn, index);
 
             response.redirect("/");
             return "";
@@ -91,6 +88,7 @@ public class Main {
 
             //Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
             //user.games.add(game);
+
             insertGame(conn, gameName, gameGenre, gamePlatform, gameYear);
 
             response.redirect("/");

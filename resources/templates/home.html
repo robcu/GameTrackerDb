@@ -32,7 +32,8 @@
 
 <ol>
     {{#games}}
-    <li>{{name}} - {{genre}} - {{platform}} - {{releaseYear}}</li>
+    {{id}}  -  {{name}}  -  {{genre}}  -  {{platform}}  -  {{releaseYear}}
+    <form action="/delete-game" method="get"><input type="hidden" value="{{id}}" name="DeleteIndex"/><button type="submit">Delete</button></form>
     {{/games}}
 </ol>
 
