@@ -1,6 +1,5 @@
 import org.h2.tools.Server;
 import spark.ModelAndView;
-import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
@@ -10,11 +9,13 @@ import java.util.HashMap;
 
 public class Main {
 
-    static HashMap<String, User> users = new HashMap<>();
-
     public static void insertGame(Connection conn, String name, String genre, String platform, int year) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO games VALUES (NULL, name, genre, platform, year);");
+                "INSERT INTO games VALUES (NULL, ?, ?, ?, ?);");
+        stmt.setString(1, name);
+        stmt.setString(2, genre);
+        stmt.setString(3, platform);
+        stmt.setInt(4, year);
         stmt.execute();
     }
 
@@ -40,6 +41,7 @@ public class Main {
 
     }
 
+
     public static void main(String[] args) throws SQLException {
         Server.createWebServer().start();
         Connection conn = DriverManager.getConnection("/jdbc:h2:./main");
@@ -52,16 +54,10 @@ public class Main {
         Spark.init();
         Spark.get("/", (
                         (request, response) -> {
-                            Session session = request.session();
-                            String name = session.attribute("userName");
-                            User user = users.get(name);
-//todo: insert selectGames();
+                            ArrayList<Game> homeGames = selectGames(conn);
                             HashMap m = new HashMap();
-                            if (user == null) {
-                                return new ModelAndView(m, "login.html");
-                            } else {
-                                return new ModelAndView(user, "home.html");
-                            }
+                            m.put("homeGames", homeGames);
+                            return new ModelAndView(m, "home.html");
                         }),
                 new MustacheTemplateEngine()
         );
@@ -75,43 +71,21 @@ public class Main {
         });
 
         Spark.post("/create-game", (request, response) -> {
-            Session session = request.session();
-            String name = session.attribute("userName");
-            User user = users.get(name);
-            if (user == null) {
-                throw new Exception("User not logged in");
-            }
+
             String gameName = request.queryParams("gameName");
             String gameGenre = request.queryParams("gameGenre");
             String gamePlatform = request.queryParams("gamePlatform");
             int gameYear = Integer.parseInt(request.queryParams("gameYear"));
 
-            //Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
-            //user.games.add(game);
-
             insertGame(conn, gameName, gameGenre, gamePlatform, gameYear);
 
             response.redirect("/");
-
             return "";
         });
 
-        Spark.post("/logout", (request, response) -> {
-            Session session = request.session();
-            session.invalidate();
-            response.redirect("/");
-            return "";
-        });
+        Spark.post("/edit-game", (request, response) -> {
 
-        Spark.post("/login", (request, response) -> {
-            String name = request.queryParams("loginName");
-            User user = users.get(name);
-            if (user == null) {
-                user = new User(name);
-                users.put(name, user);
-            }
-            Session session = request.session();
-            session.attribute("userName", name);
+            //todo: write method updateGame(); then call it here
 
             response.redirect("/");
             return "";
