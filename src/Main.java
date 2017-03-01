@@ -27,7 +27,7 @@ public class Main {
 
     public static ArrayList<Game> selectGames(Connection conn) throws SQLException {
         ArrayList<Game> games = new ArrayList<>();
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM games");
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM games;");   //todo: games is empty when first run
         ResultSet results = stmt.executeQuery();
         while (results.next()) {
             int id = results.getInt("id");
@@ -42,10 +42,7 @@ public class Main {
     }
 
     public static void updateGame(Connection conn, int uIndex, String uName, String uGenre, String uPlatform, int uYear) throws SQLException {
-        // UPDATE players SET is_alive = FALSE WHERE name = 'Bob';
-        PreparedStatement stmt = conn.prepareStatement(
-                //"UPDATE games SET name = uName WHERE id = uIndex;"
-                "UPDATE games SET VALUES (?, ?, ?, ?, ?) WHERE id = uIndex");
+        PreparedStatement stmt = conn.prepareStatement("UPDATE games SET id=?, name=?, genre=?, platform=?, releaseYear=?  WHERE id = uIndex;");
         stmt.setInt(1, uIndex);
         stmt.setString(2, uName);
         stmt.setString(3, uGenre);
@@ -56,21 +53,20 @@ public class Main {
 
     public static void main(String[] args) throws SQLException {
         Server.createWebServer().start();
-        Connection conn = DriverManager.getConnection("/jdbc:h2:./main");
-        PreparedStatement stmt = conn.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, releaseYear INT)");
+        Connection conn = DriverManager.getConnection("jdbc:h2:./main");
+        PreparedStatement stmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, releaseYear INT);");
         stmt.execute();
 
 
         System.out.println("Starting GameTracker...");
         Spark.init();
-        Spark.get("/", (
+        Spark.get("/",
                         (request, response) -> {
                             ArrayList<Game> homeGames = selectGames(conn);
                             HashMap m = new HashMap();
                             m.put("homeGames", homeGames);
                             return new ModelAndView(m, "home.html");
-                        }),
+                        },
                 new MustacheTemplateEngine()
         );
 
