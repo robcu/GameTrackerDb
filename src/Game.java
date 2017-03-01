@@ -13,4 +13,6 @@ public class Game {
         this.platform = platform;
         this.releaseYear = releaseYear;
     }
+
+    public Game() {}
 }

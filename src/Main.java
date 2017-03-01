@@ -21,13 +21,14 @@ public class Main {
 
     public static void deleteGame(Connection conn, int index) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(
-                "DELETE FROM games WHERE id = index;");
+                "DELETE FROM games WHERE id = ?;");
+        stmt.setString(1, String.valueOf(index));
         stmt.execute();
     }
 
     public static ArrayList<Game> selectGames(Connection conn) throws SQLException {
         ArrayList<Game> games = new ArrayList<>();
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM games;");   //todo: games is empty when first run
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM games;");
         ResultSet results = stmt.executeQuery();
         while (results.next()) {
             int id = results.getInt("id");
@@ -38,16 +39,31 @@ public class Main {
             games.add(new Game(id, name, genre, platform, year));
         }
         return games;
+    }
 
+    public static Game selectOneGame(Connection conn, int index) throws SQLException {
+        Game game = new Game();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM games WHERE id = ?;");
+        stmt.setString(1, String.valueOf(index));
+        ResultSet results = stmt.executeQuery();
+        while (results.next()) {
+            String name = results.getString("name");
+            String genre = results.getString("genre");
+            String platform = results.getString("platform");
+            int year = results.getInt("releaseYear");
+            game = new Game(index, name, genre, platform, year);
+        }
+        return game;
     }
 
     public static void updateGame(Connection conn, int uIndex, String uName, String uGenre, String uPlatform, int uYear) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("UPDATE games SET id=?, name=?, genre=?, platform=?, releaseYear=?  WHERE id = uIndex;");
+        PreparedStatement stmt = conn.prepareStatement("UPDATE games SET id=?, name=?, genre=?, platform=?, releaseYear=?  WHERE id = ?;");
         stmt.setInt(1, uIndex);
         stmt.setString(2, uName);
         stmt.setString(3, uGenre);
         stmt.setString(4, uPlatform);
         stmt.setInt(5, uYear);
+        stmt.setInt(6, uIndex);
         stmt.execute();
     }
 
@@ -57,21 +73,21 @@ public class Main {
         PreparedStatement stmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, releaseYear INT);");
         stmt.execute();
 
-
         System.out.println("Starting GameTracker...");
+
         Spark.init();
         Spark.get("/",
-                        (request, response) -> {
-                            ArrayList<Game> homeGames = selectGames(conn);
-                            HashMap m = new HashMap();
-                            m.put("homeGames", homeGames);
-                            return new ModelAndView(m, "home.html");
-                        },
+                (request, response) -> {
+                    ArrayList<Game> homeGames = selectGames(conn);
+                    HashMap m = new HashMap();
+                    m.put("homeGames", homeGames);
+                    return new ModelAndView(m, "home.html");
+                },
                 new MustacheTemplateEngine()
         );
 
-        Spark.post("/delete-game", (request, response) -> {
-            int index = Integer.parseInt(request.queryParams("DeleteIndex"));
+        Spark.get("/delete-game", (request, response) -> {
+            int index = Integer.parseInt(request.queryParams("index"));
             deleteGame(conn, index);
 
             response.redirect("/");
@@ -91,7 +107,7 @@ public class Main {
         });
 
         Spark.post("/edit-game", (request, response) -> {
-            int gameId = Integer.parseInt(request.queryParams("gameId"));
+            int gameId = Integer.parseInt(request.queryParams("index"));
             String gameName = request.queryParams("gameName");
             String gameGenre = request.queryParams("gameGenre");
             String gamePlatform = request.queryParams("gamePlatform");
@@ -102,5 +118,17 @@ public class Main {
             response.redirect("/");
             return "";
         });
+
+        Spark.get("/edit-game", (request, response) -> {
+                    int id = Integer.parseInt(request.queryParams("index"));
+                    Game game = selectOneGame(conn, id);
+                    HashMap m = new HashMap();
+                    m.put("oneGame", game);
+                    return new ModelAndView(m, "edit.html");
+                },
+                new MustacheTemplateEngine()
+        );
     }
+
+
 }

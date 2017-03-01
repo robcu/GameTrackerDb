@@ -2,12 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home Page</title>
+    <title>Edit</title>
 </head>
 <body>
-Create Game:
-<form action="/create-game" method="post">
-    <input type="text" placeholder="Game name" name="gameName"/>
+
+{{#oneGame}}
+{{name}}  -  {{genre}}  -  {{platform}}  -  {{releaseYear}}
+<br>
+Edit game:
+<form action="/edit-game" method="post">
+    <input type="hidden" value="{{id}}" name="index"/>
+    <input type="text" placeholder="name" name="gameName"/>
     <select name="gameGenre">
         <option selected disabled>Genre</option>
         <option value="adventure">Adventure</option>
@@ -25,14 +30,6 @@ Create Game:
     <input type="number" placeholder="Release Year" name="gameYear"/>
     <button type="submit">Submit</button>
 </form>
-
-<ol>
-    {{#homeGames}}
-    {{name}}  -  {{genre}}  -  {{platform}}  -  {{releaseYear}}
-    <form action="/edit-game" method="get"><input type="hidden" value="{{id}}" name="index"/><button type="submit">Edit</button></form>
-    <form action="/delete-game" method="get"><input type="hidden" value="{{id}}" name="index"/><button type="submit">Delete</button></form>
-    {{/homeGames}}
-</ol>
-
+{{/oneGame}}
 </body>
 </html>
